@@ -1,6 +1,8 @@
 package com.lambdaschool.todos.services;
 
+import com.lambdaschool.todos.models.Todos;
 import com.lambdaschool.todos.models.User;
+import com.lambdaschool.todos.repository.TodosRepository;
 import com.lambdaschool.todos.repository.UserRepository;
 import com.lambdaschool.todos.views.UserNameCountTodos;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,9 @@ public class UserServiceImpl implements UserService
      */
     @Autowired
     private UserRepository userrepos;
+
+    @Autowired
+    private TodosService todosService;
 
     /**
      * Connects this service to the auditing service in order to get current user name
@@ -71,6 +76,32 @@ public class UserServiceImpl implements UserService
         newUser.setPrimaryemail(user.getPrimaryemail()
             .toLowerCase());
 
+        newUser.getTodos().clear();
+        for (Todos t : user.getTodos()){
+            newUser.getTodos().add(new Todos(newUser, t.getDescription()));
+        }
+        return userrepos.save(newUser);
+    }
+
+    @Transactional
+    @Override
+    public User update(long id, User user){
+        User newUser = findUserById(id);
+        if (user.getPassword() != null){
+            newUser.setPassword(user.getPassword());
+        }
+        if (user.getPrimaryemail() != null){
+            newUser.setPrimaryemail(user.getPrimaryemail());
+        }
+        if (user.getUsername() != null){
+            newUser.setUsername(user.getUsername());
+        }
+        if (user.getTodos().size() > 0){
+            newUser.getTodos().clear();
+            for (Todos t : user.getTodos()){
+                newUser.getTodos().add(new Todos(newUser, t.getDescription()));
+            }
+        }
         return userrepos.save(newUser);
     }
 
